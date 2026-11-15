@@ -34,3 +34,21 @@ plugins {
 }
 
 apply("${project.rootDir}/buildscripts/toml-updater-config.gradle")
+
+tasks.register<Exec>("serveDashboard") {
+    group = "dashboard"
+    description = "Serves the dashboard from the repo root."
+
+    // Pick python or python3 depending on OS
+    val pythonCmd =
+        if (System.getProperty("os.name").lowercase().contains("win"))
+            "python"
+        else
+            "python3"
+
+    // IMPORTANT: serve from the repo root
+    workingDir = rootDir
+
+    // Start the server
+    commandLine(pythonCmd, "-m", "http.server", "8000")
+}

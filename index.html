@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compose Migration Dashboard</title>
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js"></script>
+</head>
+
+<body>
+<header>
+    <h1>Compose Migration Dashboard</h1>
+    <p id="generatedAt"></p>
+</header>
+
+<section id="summary">
+    <h2>Migration Summary</h2>
+    <div class="summary-cards">
+        <div class="card"><span id="totalScreens"></span><label>Total Screens</label></div>
+        <div class="card"><span id="composeScreens"></span><label>Compose</label></div>
+        <div class="card"><span id="xmlScreens"></span><label>XML</label></div>
+        <div class="card"><span id="mixedScreens"></span><label>Mixed</label></div>
+    </div>
+</section>
+
+<section>
+    <h2>Migration Progress</h2>
+    <div style="width: 200px;">
+    <canvas id="progressChart"></canvas>
+    </div>
+</section>
+
+<section>
+    <h2>Screen Details</h2>
+    <table id="screensTable">
+        <thead>
+        <tr>
+            <th>Screen</th>
+            <th>Status</th>
+            <th>XML</th>
+            <th>Compose</th>
+            <th>Custom Views</th>
+            <th>Nav Targets</th>
+            <th>Complexity</th>
+            <th>Migrated By</th>
+            <th>Date</th>
+            <th>Tests</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</section>
+
+<section>
+    <h2>Developer Leaderboard</h2>
+    <ul id="leaderboard"></ul>
+</section>
+
+
+</body>
+</html>

@@ -31,4 +31,5 @@ dependencyResolutionManagement {
 }
 
 include(":app")
+include(":tools:migration-scanner")
 include(":macrobenchmark")
