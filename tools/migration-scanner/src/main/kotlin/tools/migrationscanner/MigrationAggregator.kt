@@ -1,12 +1,11 @@
 package tools.migrationscanner
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import java.io.File
 
 @OptIn(ExperimentalSerializationApi::class)
-@JsonIgnoreUnknownKeys
 @Serializable
 data class RawScreen(
     val screen: String,

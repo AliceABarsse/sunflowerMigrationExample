@@ -84,7 +84,7 @@ android {
 
   testOptions {
     managedDevices {
-      allDevices {
+      devices {
         maybeCreate<com.android.build.api.dsl.ManagedVirtualDevice>("pixel2api27").apply {
           device = "Pixel 2"
           apiLevel = 27
