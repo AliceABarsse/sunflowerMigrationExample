@@ -1,6 +1,12 @@
 package tools.migrationscanner
 
 import com.google.gson.Gson
+import tools.migrationscanner.helpers.ComplexityCalculator
+import tools.migrationscanner.helpers.ComposeParser
+import tools.migrationscanner.helpers.GitParser
+import tools.migrationscanner.helpers.NavigationParser
+import tools.migrationscanner.helpers.TestParser
+import tools.migrationscanner.helpers.XmlParser
 import java.io.File
 
 fun main() {
@@ -25,28 +31,28 @@ class MigrationScanner(private val root: File) {
     private val xmlParser = XmlParser(root)
     private val gitParser = GitParser(root)
     private val complexity = ComplexityCalculator()
-    /*
+
     private val composeParser = ComposeParser(root)
     private val navigationParser = NavigationParser(root)
     private val testParser = TestParser(root)
-     */
+
 
     fun scan(): List<ScreenInfo> {
         val xmlScreens = xmlParser.findXmlScreens()
-        val composeScreens = emptyList<String>()// composeParser.findComposeScreens()
-        val navigationTargets = "" // navigationParser.findNavigationTargets()
-        val testInfo = "" //testParser.findTests()
+        val composeScreens = composeParser.findComposeScreens()
+        val navigationTargets = navigationParser.findNavigationTargets()
+        val testInfo = testParser.findTests()
 
-        val allScreens = (xmlScreens.keys /*+ composeScreens.keys + navigationTargets.keys*/)
+        val allScreens = (xmlScreens.keys + composeScreens.keys + navigationTargets.keys)
             .distinct()
 
         println("all screens: $allScreens")
 
         return allScreens.map { screenName ->
             val xmlFiles = xmlScreens[screenName] ?: emptyList()
-            val composeFiles = /*composeScreens[screenName] ?: */ emptyList<String>()
-            val navTargets = /*navigationTargets[screenName] ?:*/ 0
-            val tests = /*testInfo[screenName] ?:*/ TestInfo(0, 0)
+            val composeFiles = composeScreens[screenName] ?: emptyList<String>()
+            val navTargets = navigationTargets[screenName] ?: 0
+            val tests = testInfo[screenName] ?: TestInfo(0, 0)
 
             val xmlLines = countLines(xmlFiles)
             val composeLines = countLines(composeFiles)
@@ -64,11 +70,11 @@ class MigrationScanner(private val root: File) {
                 status = status,
                 xmlFiles = xmlFiles,
                 composeFiles = composeFiles,
-                customViews = "0", // xmlParser.countCustomViews(screenName),
-                navigationTargets = "", // navTargets,
+                customViews = xmlParser.countCustomViews(screenName),
+                navigationTargets = navTargets,
                 migratedBy = migrationMeta.author,
                 migrationDate = migrationMeta.date,
-                testsAdded = "", // tests.composeTests,
+                testsAdded = tests.composeTests,
                 complexityScore = complexity.calculate(
                     xmlFiles = xmlFiles,
                     composeFiles = emptyList(),

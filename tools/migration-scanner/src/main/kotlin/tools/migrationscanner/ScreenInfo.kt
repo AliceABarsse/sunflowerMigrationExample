@@ -5,11 +5,11 @@ data class ScreenInfo(
     val status: String,
     val xmlFiles: List<String>,
     val composeFiles: List<String>,
-    val customViews: String,
+    val customViews: Int,
 
-    val navigationTargets: String,
+    val navigationTargets: Int,
     val migratedBy: String?,
     val migrationDate: String?,
-    val testsAdded: String?,
+    val testsAdded: Int,
     val complexityScore: Double,
 )
