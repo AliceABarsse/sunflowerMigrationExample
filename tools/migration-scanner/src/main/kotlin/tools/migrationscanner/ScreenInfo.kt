@@ -1,5 +1,10 @@
 package tools.migrationscanner
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
 data class ScreenInfo(
     val screen: String,
     val status: String,

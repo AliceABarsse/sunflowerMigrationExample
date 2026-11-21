@@ -1,73 +1,38 @@
 package tools.migrationscanner
-import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class RawScreen(
-    val screen: String,
-    val status: String,
-    val xmlFiles: List<String> = emptyList(),
-    val composeFiles: List<String> = emptyList()
+data class Summary (
+    @SerialName("generated_at") val generatedAt: String,
+    @SerialName("total_screens")val totalScreens: Int,
+    @SerialName("compose_screens")val totalComposeScreens: Int,
+    @SerialName("xml_screens")val totalXmlScreens: Int,
+    @SerialName("mixed_screens")val totalMixedScreens: Int,
 )
 
 @Serializable
-data class ScreenSummary(
-    val totalScreens:Int,
-    val xmlScreens: Int,
-    val composeScreens: Int,
-    val migrationStatus: String
+data class FullData(
+    val summary: Summary,
+    val screens: List<AggregatedScreen>,
 )
-
 
 @Serializable
 data class AggregatedScreen(
     val screen: String,
     val status: String,
     val xmlFiles: List<String>,
-    val jetpackFiles: List<String>,
-    val summary: ScreenSummary
+    val composeFiles: List<String>,
+    val customViews: Int,
+    val navigationTargets: String?,
+    val complexityScore: Double,
+    val migratedBy: String?,
+    val migrationDate: String?,
+    val testsAdded: Int,
 )
-
-/*
-class MigrationAggregator {
-
-    private val gson = Gson()
-
-    fun aggregate(root: File) {
-        val scanDir = File(root, "build/scan-results")
-        if (!scanDir.exists()) {
-            println("No scan-results directory found at: ${scanDir.absolutePath}")
-            return
-        }
-        val jsonFiles = scanDir.listFiles { f -> f.extension == "json" }?.toList() ?: emptyList()
-
-        println("Found ${jsonFiles.size} scan result files to aggregate")
-
-        val allScreens = mutableListOf<ScreenInfo>()
-        val listType = object : TypeToken<List<ScreenInfo>>() {}.type
-
-        jsonFiles.forEach { file ->
-            try {
-                val content = file.readText()
-                val screens: List<ScreenInfo> = gson.fromJson(content, listType)
-                allScreens.addAll(screens)
-            } catch (e: Exception) {
-                println("Failed to parse ${file.name}: ${e.message}")
-            }
-        }
-
-        val outputFile = File(scanDir, "screens_aggregated.json")
-        outputFile.writeText(gson.toJson(allScreens))
-
-        println("Aggregation complete. Output written to: ${outputFile.absolutePath}")
-    }
-
-}
-*/
 
 class MigrationAggregator {
 
@@ -86,37 +51,58 @@ class MigrationAggregator {
         }
         val inputFile = scanDir.listFiles { f -> f.name == "screens.json" }?.firstOrNull()
 
-        val rawScreens = json.decodeFromString<List<RawScreen>>(inputFile!!.readText())
+        val rawScreens = json.decodeFromString<List<ScreenInfo>>(inputFile!!.readText())
+        var totalScreens = 0
+        var totalXmlScreens = 0
+        var totalComposeScreens = 0
+        var totalMixedScreens = 0
 
         val aggregated = rawScreens.associate { raw ->
+
             val xmlCount = raw.xmlFiles.size
-            val jetpackCount = raw.composeFiles.size
+            val composeFiles = raw.composeFiles.size
+            totalScreens += 1 // or more?
+
+            when {
+                raw.xmlFiles.isEmpty() -> totalComposeScreens += composeFiles
+                raw.composeFiles.isEmpty() -> totalXmlScreens += raw.xmlFiles.size
+                else -> totalMixedScreens += 1 // or more?
+            }
 
             val migrationStatus =
                 when {
-                    xmlCount > 0 && jetpackCount > 0 -> "partial"
-                    xmlCount > 0 -> "xml-only"
-                    jetpackCount > 0 -> "jetpack-only"
+                    xmlCount > 0 && composeFiles > 0 -> "mixed"
+                    xmlCount > 0 -> "xml"
+                    composeFiles > 0 -> "compose"
                     else -> "unknown"
                 }
 
-            val summary = ScreenSummary(
-                totalScreens = xmlCount + jetpackCount,
-                xmlScreens = xmlCount,
-                composeScreens = jetpackCount,
-                migrationStatus = migrationStatus
-            )
 
             raw.screen to AggregatedScreen(
                 screen = raw.screen,
-                status = raw.status,
+                status = migrationStatus,
                 xmlFiles = raw.xmlFiles,
-                jetpackFiles = raw.composeFiles,
-                summary = summary
+                composeFiles = raw.composeFiles,
+                customViews = raw.customViews,
+                navigationTargets = null, // TODO fix mapping
+                complexityScore = raw.complexityScore,
+                migratedBy = raw.migratedBy,
+                migrationDate = raw.migrationDate,
+                testsAdded = raw.testsAdded,
             )
         }
+        val finalData = FullData(
+            summary = Summary(
+                generatedAt = "the date here",
+                totalScreens = totalScreens,
+                totalComposeScreens = totalComposeScreens,
+                totalXmlScreens = totalXmlScreens,
+                totalMixedScreens = totalMixedScreens,
+            ),
+            screens = aggregated.values.toList()
+        )
 
-        outputFile.writeText(json.encodeToString(aggregated))
+        outputFile.writeText(json.encodeToString(finalData))
     }
 }
 fun main() {
