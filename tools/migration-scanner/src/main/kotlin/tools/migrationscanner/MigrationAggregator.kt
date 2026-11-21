@@ -1,4 +1,5 @@
 package tools.migrationscanner
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -6,12 +7,12 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 @Serializable
-data class Summary (
+data class Summary(
     @SerialName("generated_at") val generatedAt: String,
-    @SerialName("total_screens")val totalScreens: Int,
-    @SerialName("compose_screens")val totalComposeScreens: Int,
-    @SerialName("xml_screens")val totalXmlScreens: Int,
-    @SerialName("mixed_screens")val totalMixedScreens: Int,
+    @SerialName("total_screens") val totalScreens: Int,
+    @SerialName("compose_screens") val totalComposeScreens: Int,
+    @SerialName("xml_screens") val totalXmlScreens: Int,
+    @SerialName("mixed_screens") val totalMixedScreens: Int,
 )
 
 @Serializable
@@ -39,11 +40,9 @@ class MigrationAggregator {
     private val json = Json { prettyPrint = true }
 
     fun aggregate(
-                  root: File,
+        scanDir: File,
+        outputFile: File,
     ) {
-
-        val scanDir = File(root, "build/scan-results")
-        val outputFile = File(scanDir, "screens_aggregated.json")
 
         if (!scanDir.exists()) {
             println("No scan-results directory found at: ${scanDir.absolutePath}")
@@ -69,18 +68,9 @@ class MigrationAggregator {
                 else -> totalMixedScreens += 1 // or more?
             }
 
-            val migrationStatus =
-                when {
-                    xmlCount > 0 && composeFiles > 0 -> "mixed"
-                    xmlCount > 0 -> "xml"
-                    composeFiles > 0 -> "compose"
-                    else -> "unknown"
-                }
-
-
             raw.screen to AggregatedScreen(
                 screen = raw.screen,
-                status = migrationStatus,
+                status = raw.status,
                 xmlFiles = raw.xmlFiles,
                 composeFiles = raw.composeFiles,
                 customViews = raw.customViews,
@@ -105,7 +95,13 @@ class MigrationAggregator {
         outputFile.writeText(json.encodeToString(finalData))
     }
 }
+
 fun main() {
     val root = File("${System.getProperty("user.dir")}/../..")
-    MigrationAggregator().aggregate(root)
+    val scanDir = File(root, "build/scan-results")
+    val outputFile = File(scanDir, "screens_aggregated.json")
+    MigrationAggregator().aggregate(scanDir, outputFile)
+
+    println("Migration aggregation complete.\nResults written to ${outputFile}")
+
 }

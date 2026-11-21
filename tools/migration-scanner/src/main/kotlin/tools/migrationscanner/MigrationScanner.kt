@@ -11,11 +11,8 @@ import java.io.File
 
 fun main() {
     val projectRoot = File("${System.getProperty("user.dir")}/../..")
-    println("root: $projectRoot")
     val scanner = MigrationScanner(projectRoot)
     val results = scanner.scan()
-
-    println("results: $results")
 
     val outputDir = File(projectRoot, "build/scan-results")
     outputDir.mkdirs()
@@ -23,7 +20,7 @@ fun main() {
     val outputFile = File(outputDir, "screens.json")
     outputFile.writeText(Gson().toJson(results))
 
-    println("Migration scan complete. Results written to ${outputFile.absolutePath}")
+    println("Migration scan complete.\nResults written to ${outputFile.absolutePath}")
 }
 
 class MigrationScanner(private val root: File) {
@@ -36,7 +33,6 @@ class MigrationScanner(private val root: File) {
     private val navigationParser = NavigationParser(root)
     private val testParser = TestParser(root)
 
-
     fun scan(): List<ScreenInfo> {
         val xmlScreens = xmlParser.findXmlScreens()
         val composeScreens = composeParser.findComposeScreens()
@@ -45,8 +41,6 @@ class MigrationScanner(private val root: File) {
 
         val allScreens = (xmlScreens.keys + composeScreens.keys + navigationTargets.keys)
             .distinct()
-
-        println("all screens: $allScreens")
 
         return allScreens.map { screenName ->
             val xmlFiles = xmlScreens[screenName] ?: emptyList()
